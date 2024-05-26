@@ -5,11 +5,11 @@ A continuación se configurará un Runner de GitLab. Este se encargará de gesti
 ## 1. Creación del Runner
 
 1. En la parte inferior izquierda de la página principal de nuestro repositorio GitLab tocamos "Settings" y accedemos a la sección de "CI/CD".
-   <img src="../img/guias/gitlab-runner-paso1.png" width="50%"/>
+   <img src="../img/guias/gitlab-runner-paso1.png" width="30%"/>
 
 2. Expandimos la sección de "Runners" y tocamos en el botón de "New Project Runner"
 
-   <img src="../img/guias/gitlab-runner-paso2.png" width="90%"/>
+   <img src="../img/guias/gitlab-runner-paso2.png" width="80%"/>
 
 3. Se nos pedirá ingresar un _tag_ para identificar el Runner. Podríamos colocar un tag como por ejemplo `ubuntu` para conocer rápidamente en qué sistema operativo se encuentra corriendo. A continuación clickeamos en "Create runner".
 
@@ -74,7 +74,7 @@ Esta siguiente etapa de configuración, consiste en la conexión y asociación d
    <img src="../img/guias/gitlab-runner-paso7.png" width="50%"/>
 
 5. A su vez, será importante desactivar los `Instance Runners` mediante el Switch “Enable instance runners for this project” ubicado en la parte lateral derecha del panel anterior, con el fin de usar exclusivamente el Runner recientemente configurado.
-   <img src="../img/guias/gitlab-runner-paso8.png" width="70%"/>
+   <img src="../img/guias/gitlab-runner-paso8.png" width="45%"/>
 
 6. En la EC2, modificamos el archivo `/home/ubuntu/.gitlab-runner/config.toml` para que el campo `privileged` esté en `true`:
 

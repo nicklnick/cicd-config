@@ -39,5 +39,3 @@ Para que nuestra instancia EC2 pueda funcionar como GitLab Runner, debemos insta
    ```bash
    sudo usermod -a -G docker $(whoami)
    ```
-
-De esta manera Docker quedará listo para ser utilizado por el GitLab Runner en nuestra EC2.

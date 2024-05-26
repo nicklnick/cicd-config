@@ -28,10 +28,10 @@ Sin embargo, en lugar de utilizar el archivo `.pem` para acceder a la instancia 
 1. En el menú de la izquierda de la pantalla principal de nuetro repositorio, clickeamos "Settings" > "CI/CD".
 2. A diferencia de los pasos anteriores elegiremos como "Type" una variable de tipo `File`. Elegimos una "Key" para la variable. Esta "Key" será la forma en la cual nos referiremos a la misma dentro de la definición del Pipeline, en nuestro caso `PROD_SSH_KEY`
 
-   <img src="../img/guias/gitlab-pipeline-prod_access-paso2.png" width="50%"/>
+   <img src="../img/guias/gitlab-pipeline-prod_access-paso2.png" width="30%"/>
 
 3. A continuación debemos colocar el valor que contendrá esta clave. Para esto copiaremos el contenido del archivo `prod_key.pem` que descargamos previamente desde AWS y lo pegaremos como valor de esta variable `PROD_SSH_KEY`.
-   <img src="../img/guias/gitlab-pipeline-prod_access-paso3.png" width="50%"/>
+   <img src="../img/guias/gitlab-pipeline-prod_access-paso3.png" width="30%"/>
 
 > [!IMPORTANT]
 > Tal como indica la documentación de GitLab, es importante dejar una nueva línea al final del contenido colocado en el campo de "Value".
@@ -69,4 +69,5 @@ CMD ["npm", "run", "dev"]
 Una vez listo el archivo `Dockerfile`, lo subimos al repositorio y el mismo será consumido durante el pipeline en la etapa correspondiente.
 
 ## 4. Creando un pipeline de despliegue
+
 HACER
