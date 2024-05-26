@@ -11,4 +11,4 @@ Previo a construir el Pipeline de CI/CD, es necesario tener un repositorio en do
 
    - En la parte central se encuentran los archivos junto al último _commit_ realizado por alguno de los colaboradores del repositorio.
    - En la parte izquierda, se encontrarán los distintos menús correspondientes a distintas configuraciones del repositorio. En esta guía se prestará mayor atención a las secciones de **Build**, **Deploy** y **Settings**.
-      <img src="../../img/guias/prerrequisitos/repo-gitlab-paso6.png" width="85%"/>
+     <img src="../../img/guias/prerrequisitos/gitlab-repo-paso6.png" width="85%"/>
