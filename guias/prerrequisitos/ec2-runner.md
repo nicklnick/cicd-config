@@ -30,8 +30,8 @@ La instancia creada en este punto será la que luego utilizaremos como Runner de
 
    4. Debemos generar un par de claves de inicio de sesión, para esto se debe clickear en la opción “Crear un nuevo par de claves”. A continuación, introducir un nombre (sugerimos `runner_key`) y seleccionar `ED25519` como tipo de par de claves, y descargar el archivo con la clave privada.
 
-      > [!IMPORTANT]
-      > Es importante almacenar este archivo, pues será necesario para los próximos pasos de configuración.
+> [!IMPORTANT]  
+> Es importante almacenar este archivo, pues será necesario para los próximos pasos de configuración.
 
    5. Seleccionar “Selecciona un grupo de seguridad existente”.
       1. Seleccionar `gitlab-sg` (el nombre que le pusimos en la [sección anterior](#1-creando-un-security-group)).
@@ -49,7 +49,7 @@ Una vez terminada la configuración de la instancia, se volverá a la pantalla p
 1. Clickeando en el `id de la instancia`, vamos a la parte superior
    derecha y tocamos en “Conectar”.
 2. Seremos redirigidos a una pantalla que contiene los datos necesarios para conectarnos a la instancia EC2 mediante `ssh`. Es aquí, donde se vuelve importante el uso de la clave generada y el archivo `.pem` descargado en la [sección anterior](#2-creación-de-instancias-ec2).
-   <img src="../../img/guias/prerrequisitos/ec2-runner-connect_ec2-paso1.png" width="90%"/>
+   <img src="../../img/guias/prerrequisitos/ec2-runner-connect_ec2-paso1.png" width="50%"/>
 
    Para esto será necesario acceder a una terminal. Se recomienda pararse en el directorio que contiene el archivo `.pem` o, en su defecto, llevar el archivo `.pem` directamente a la carpeta `~/.ssh` y ejecutar los siguientes comandos.
 
