@@ -2,6 +2,14 @@
 
 A continuación se configurará un Runner de GitLab. Este se encargará de gestionar las peticiones de ejecución de un pipeline definido desde GitLab. La propia plataforma de GitLab nos guiará para configurar nuestra EC2 para que actúe como un Runner asociado a nuestro repositorio.
 
+> <u>Prerrequisitos</u>:
+>
+> - Crear un repositorio de GitLab ([link](./prerrequisitos/gitlab-repo.md))
+> - Tener una instancia EC2 ([link](./prerrequisitos/ec2-runner.md)) con Docker ([link](./prerrequisitos/ec2-docker.md)), y con estas características:
+>   - _Sistema operativo_: Ubuntu Server 24.04 LTS con arquitectura x86
+>   - _Tipo de instancia_: t2.medium
+>   - _Par de claves_: ED25519
+
 ## 1. Creación del Runner
 
 1. En la parte inferior izquierda de la página principal de nuestro repositorio GitLab tocamos "Settings" y accedemos a la sección de "CI/CD".

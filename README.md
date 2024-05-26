@@ -7,6 +7,16 @@ Este repositorio contiene una serie de guías para configurar correctamente un p
 Las carpetas que pueden encontrarse en el proyecto son:
 
 - `img`: Contiene las imágenes que se utilizan en las guías.
+- `guias`: Contiene las guías per se.
+  - `prerrequisitos`: Algunas de las guías tienen prerrequisitos, si no se sabe cómo llevarlos a cabo se incluyeron guías para esto también.
+
+## ¿Por dónde empiezo?
+
+Armamos un árbol de decisiones para que sea más fácil seguir las guías.
+
+   <img src="./img/guide-flow.png" width="45%"/>
+
+En violeta se muestra el archivo al que se debe acceder (se encuentra dentro de `guias/`) para ese punto de la guía.
 
 ## Integrantes
 

@@ -9,6 +9,11 @@ A grandes rasgos, el proceso de despliegue denota los siguientes pasos:
 
 Comenzaremos dando de alta un registro de contenedores dentro de nuestro repositorio con GitLab Container Registry.
 
+> <u>Prerrequisitos</u>:
+>
+> - Configurar Project Access Token en el repositorio ([link](./prerrequisitos/gitlab-pat.md))
+> - Tener un proyecto de Next.js en el repositorio ([link](nextjs-project.md))
+
 ## 1. Creación de la instancia de producción
 
 Deberemos crear otra instancia EC2 además de la del Runner, para que actúe como nuestro servidor de producción. Si seguiste [esta guía](./prerrequisitos/ec2-runner.md), podes volver a verla pero cambiando las siguientes variables:
