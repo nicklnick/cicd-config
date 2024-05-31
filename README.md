@@ -1,6 +1,7 @@
 # Configuración GitLab CI/CD
 
 Este repositorio contiene una serie de guías para configurar correctamente un pipeline de CI/CD en la plataforma de [GitLab](https://gitlab.com/), haciendo uso de dos instancias [EC2](https://aws.amazon.com/es/ec2/). Una de las instancias será la encargada de correr el pipeline, y la otra actuará como servidor de producción.
+Dado que el campo de CI/CD es muy amplio, optamos por poner una configuración a modo de ejemplo con una aplicación de [Next.js](https://nextjs.org/) muy simple para familiarizarnos con los conceptos más importantes.
 
 ## Estructura del proyecto
 
