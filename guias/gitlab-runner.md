@@ -64,10 +64,14 @@ Esta siguiente etapa de configuración, consiste en la conexión y asociación d
 
    1. Copiamos el comando mostrado en el Step 1.
       ```bash
-      gitlab-runner register
+      sudo gitlab-runner register
           --url https://gitlab.com
           --token glrt-<TOKEN>
       ```
+      
+> [!IMPORTANT]
+> El register los debemos correr este comando con `sudo`
+
    2. Daremos `Enter` en las primeras opciones hasta llegar a la selección del `executor`. Aquí seleccionaremos la opción `docker`.
    3. Ingresamos `docker:24.0.7` como imagen por defecto.
    4. Ejecutamos:
