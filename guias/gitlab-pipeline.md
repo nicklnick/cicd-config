@@ -14,67 +14,6 @@ Comenzaremos dando de alta un registro de contenedores dentro de nuestro reposit
 > -   Configurar Project Access Token en el repositorio ([link](./prerrequisitos/gitlab-pat.md))
 > -   Tener un proyecto de Next.js en el repositorio ([link](nextjs-project.md))
 
-## 1. Creación de la instancia de producción
-
-Deberemos crear otra instancia EC2 además de la del Runner, para que actúe como nuestro servidor de producción. Si seguiste [esta guía](./prerrequisitos/ec2-runner.md), podes volver a verla pero cambiando las siguientes variables:
-
--   Cambiar el nombre a `prod` en lugar de `runner`
--   Así también generar otro par de claves SSH, la cual denominaremos `prod_key` generando así el archivo `prod_key.pem`
--   También configuraremos un grupo de seguridad adecuado para poder acceder al contenido de forma pública
-
-Luego de crear la instancia, siguiendo con lo explicado en secciones anteriores, nos conectamos mediante SSH e instalamos por el momento solo _Docker_ (si no recordás cómo hacerlo mirá [esta guía](./prerrequisitos/ec2-docker.md)).
-
-## 2. Configuración de acceso a EC2 de producción
-
-Tal como se nombró previamente, debemos tener una forma de comunicación entre la instancia del `runner` y la instancia de producción `prod`. Hemos generado otra clave privada denominada `prod_key`, la cual vamos a utilizar ahora para generar el acceso a la instancia de `prod` desde el `runner`.
-
-Sin embargo, en lugar de utilizar el archivo `.pem` para acceder a la instancia de producción, haremos uso de las variables de entorno CI/CD que nos ofrece GitLab. Vamos a seguir una de las practicas que exponen en su documentación sobre [cómo utilizar claves SSH dentro de un pipeline de CI/CD](<https://docs.gitlab.com/ee/ci/ssh_keys/#:~:text=To%20create%20and%20use%20an,a%20newline%20(%20LF%20character).>).
-
-1. En el menú de la izquierda de la pantalla principal de nuetro repositorio, clickeamos "Settings" > "CI/CD".
-2. A diferencia de los pasos anteriores elegiremos como "Type" una variable de tipo `File`. Elegimos una "Key" para la variable. Esta "Key" será la forma en la cual nos referiremos a la misma dentro de la definición del Pipeline, en nuestro caso `SSH_KEY`.
-
- <img src="../img/guias/gitlab-pipeline-prod_access-paso2.png" width="30%"/>
-
-3. A continuación debemos colocar el valor que contendrá esta clave. Para esto copiaremos el contenido del archivo `prod_key.pem` que descargamos previamente desde AWS y lo pegaremos como valor de esta variable `SSH_KEY`.
-   <img src="../img/guias/gitlab-pipeline-prod_access-paso3.png" width="30%"/>
-
-> [!IMPORTANT]
-> Tal como indica la documentación de GitLab, es importante dejar una nueva línea al final del contenido colocado en el campo de "Value".
-
-4. Clickeamos en "Add variable" y la variable será creada. El valor de la variable sólo puede ser visto por los dueños del repositorio (aunque esto puede configurarse).
-
-## 3. Dockerizando la App de Next.js
-
-Ya teniendo los accesos a las instancias preparados, podemos pasar a la creación del pipeline de despliegue. Pero primero también hará falta definir un `Dockerfile` que describa cómo se debe empaquetar la aplicación de Next.js.
-
-Dentro de la carpeta raíz del proyecto, crearemos un archivo Dockerfile , con el siguiente contenido:
-
-```docker
-# Usar la imagen oficial de Node.js como imagen base
-FROM node:22-alpine3.18
-
-# Establecer el directorio de trabajo en el contenedor
-WORKDIR /usr/src/app
-
-# Copiar package.json y package-lock.json al directorio de trabajo
-COPY package*.json ./
-
-# Instalar dependencias
-RUN npm install
-
-# Copiar el resto del código de la aplicación al directorio de trabajo
-COPY . .
-
-EXPOSE 3000
-
-# Ejecutar el comando para iniciar la aplicación
-CMD ["npm", "run", "dev"]
-```
-
-Una vez listo el archivo `Dockerfile`, lo subimos al repositorio y el mismo será consumido durante el pipeline en la etapa correspondiente.
-
-## 4. Creando un pipeline de despliegue
-
 Los pipelines en GitLab deben configurarse en un archivo `gitlab-ci.yml` en el directorio raíz de nuestro proyecto.
 
 Un pipeline ejecuta una serie de stages, y dentro de cada stage podemos tener uno o más jobs. Los stages que se suelen tener son:
@@ -83,7 +22,7 @@ Un pipeline ejecuta una serie de stages, y dentro de cada stage podemos tener un
 -   Build: Aquí definimos y generamos los artefactos utilizados en el resto de etapas. Podemos generar artefactos específicos para testing y otros específicos para producción.
 -   Testing: Acá testeamos los artefactos que armamos en la etapa anterior.
 -   Notification: Notificamos a los desarrolladores si los testeos pasaron o no, y si es necesario aprobación manual para la próxima etapa.
--   Deploy: Ponemos el código en un ambiente productivo.
+-   Deploy: Ponemos el código en alguno de los ambientes.
 
 ```yaml
 stages:
@@ -94,7 +33,7 @@ stages:
     - deploy
 ```
 
-### 4.1. Stage: Prep
+## 1. Stage: Prep
 
 Para el stage de _prep_ vamos a tener un único job que llamaremos "preparation", en el que vamos a querer generar un ID de nuestra build para que en un futuro podamos identificar las imágenes que estén pusheadas en el registry de containers.
 
@@ -171,7 +110,7 @@ preparation:
         - context.env
 ```
 
-### 4.2. Stage: Build
+## 2. Stage: Build
 
 El stage de _build_ tendrá un único job "build". Este job trae consigo un inconveniente: la seguridad. La manera fácil de realizar el build de una imagen de Docker dentro de un container es otorgándole a este último privilegios de root, pero esto es poco seguro. Por ello vamos a optar por utilizar [Kaniko](https://github.com/GoogleContainerTools/kaniko), una imagen que hace el build de los contenedores sin necesitar los privilegios de _sudo_.
 
@@ -222,11 +161,11 @@ build:
          artifacts: true
 ```
 
-### 4.3. Stage: Test
+## 3. Stage: Test
 
 El stage de _test_ contendrá dos jobs: "unit-test" y "uxui-test".
 
-#### Job: Unit-test
+### Job: Unit-test
 
 Este job se encargará (como dice su nombre) de realizar los tests unitarios de nuestro código. Para ello utilizaremos el framework de testing [Jest](https://jestjs.io/). La siguiente configuración de ejemplo está fuertemente inspirada en la que se puede encontrar en el siguiente [link](https://nextjs.org/docs/app/building-your-application/testing/jest).
 
@@ -295,7 +234,7 @@ Teniendo configurado el pipeline para los tests unitarios, vamos a crear uno muy
     });
     ```
 
-#### Job: Uxui-test
+### Job: Uxui-test
 
 Este job se encargará de realizar los tests de usabilidad. Para ello utilizaremos el framework de testing [Cypress](https://www.cypress.io/). La siguiente configuración está fuertemente inspirada en el tutorial del siguiente [link](https://nextjs.org/docs/pages/building-your-application/testing/cypress).
 
@@ -391,7 +330,7 @@ Con esto habremos configurado correctamente los tests de usabilidad, ahora solo 
     });
     ```
 
-### 4.4. Stage: Notification
+## 4. Stage: Notification
 
 > <u>Prerrequisito</u>:
 >
@@ -450,7 +389,7 @@ success_notification:
 
 Notar que se está utilizando una imagen de [Alpine](https://alpinelinux.org/) con `curl` para que ocupe el menor espacio posible.
 
-#### Job: failure_notification
+### Job: failure_notification
 
 En nuestro `gitlab-ci.yml` agregamos el siguiente job:
 
@@ -473,15 +412,17 @@ failure_notification:
 
 Al igual que en el job anterior, se está utilizando una imagen de Alpine. Además, notar que se está obteniendo la imagen producida por Cypress del fallo de nuestro testeo, y luego es enviada en la notificación a los desarrolladores. Esto es parte del comportamiento adicional que se le agregó al repositorio original y busca dar un mensaje más detallado y preciso al equipo.
 
-### 4.5. Stage: Deploy
+## 5. Stage: Deploy
 
 El último stage de nuestro pipeline busca deployar nuestra aplicación en alguno de nuestros ambientes.
 
-#### A. Creación de ambientes
+### 5.1. Creación de ambientes
 
-Vamos a crear 2 ambientes: uno de producción y otro de staging. Para ello, debemos crear una instancia EC2 adicional a las dos que ya teníamos (`runner` y `prod`). Recordemos que la instancia de `prod` es nuestro servidor de producción, y el `runner` es una instancia que se encarga de correr el pipeline. Ahora queremos crear un tercer servidor: el de staging. Para eso se pueden seguir los mismo pasos que en [esta guía](./prerrequisitos/ec2-runner.md#2-creación-de-instancias-ec2) para crear la instancias EC2. Notemos que podemos utilizar el mismo security group (`gitlab-sg`). La ssh key puede llamarse `staging_key.pem`.
+Vamos a crear 2 ambientes: uno de producción y otro de staging. Para ello, debemos crear dos instancias EC2 adicionales a la que ya teníamos (`runner`). Vamos a hacer que `prod` sea nuestro server de producción, y `staging` el server de desarrollo.
+Se pueden seguir los mismo pasos que en [esta guía](./prerrequisitos/ec2-runner.md#2-creación-de-instancias-ec2) para crear la instancias EC2. Notemos que podemos utilizar el mismo security group (`gitlab-sg`). Las ssh key pueden llamarse `staging_key.pem` (para `staging`) y `prod_key.pem` (para `production`).
+Luego de crear las EC2, configuramos Docker en cada una de ellas(si no recordás como hacerlo mirá [esta guía](./prerrequisitos/ec2-docker.md)).
 
-#### B. Definición de variables y ambientes en GitLab
+### 5.2. Definición de variables y ambientes en GitLab
 
 En primer lugar, creamos los ambientes en GitLab:
 
@@ -501,18 +442,20 @@ Luego, creamos las variables asociadas a estos ambientes:
     2. En el campo "Environments" ponemos el de `production`.  
        <img src="../img/guias/gitlab-pipeline-deploy-3.png" width="30%"/>
     3. En "Key" ponemos `SSH_KEY`.
-    4. En "Value" ponemos la ssh key teniendo cuidado de dejar una nueva línea al final del archivo.
+
+> [!IMPORTANT]
+> Tal como indica la documentación de GitLab, es importante dejar una nueva línea al final del contenido colocado en el campo de "Value" de la ssh key.
 
 4. Creamos la variable que contiene el dominio de la instancia EC2 de `production` (es análogo para `staging`):
     1. En el campo "Environments" ponemos el de `production`.
     2. En "Key" ponemos `DEPLOYMENT_HOST`
-    3. En "Value" ponemos el dominio de nuestra instancia (ej. ec2-100-26-163-175.compute-1.amazonaws.com)
+    3. En "Value" ponemos el dominio de nuestra instancia (ej. ec2-101-26-163-175.compute-1.amazonaws.com)
 
-#### C. Creación de las branches
+### 5.3. Creación de las branches
 
 En nuestro proyecto de Git deberíamos crear una branch `staging` para que podamos usarla como ambiente de `staging`.
 
-#### D. Creación del job de deployment
+### 5.4. Creación del job de deployment
 
 Finalmente, configuramos el job de deployment como sigue:
 
