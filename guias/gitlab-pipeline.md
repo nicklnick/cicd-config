@@ -200,7 +200,7 @@ Este job se encargará (como dice su nombre) de realizar los tests unitarios de 
 
 Este archivo configura Jest para que pueda trabajar correctamente con nuestra aplicación de Next.
 
-3. En el `package.json` agregamos el comando `"test": "jest"` dentor de `"scripts"`.
+3. En el `package.json` agregamos el comando `"test": "jest"` dentro de `"scripts"`.
 
 4. En el pipeline, vamos a agregar el job de "unit-test" con el siguiente contenido:
 
@@ -532,3 +532,5 @@ Finalmente, configuramos el job de deployment como sigue:
         environment:
             name: staging
     ```
+
+    Notemos que estamos pidiendo aprobación manual en el caso de que se trate de un deploy a producción.
