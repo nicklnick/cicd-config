@@ -282,28 +282,15 @@ Teniendo configurado el pipeline para los tests unitarios, vamos a crear uno muy
     ```tsx
     import "@testing-library/jest-dom";
     import { render, screen } from "@testing-library/react";
-    import Home from "../src/app/page";
+    import Page from "../src/app/page";
 
-    jest.mock("next/navigation", () => ({
-        useRouter() {
-            return {
-                prefetch: () => null,
-            };
-        },
-    }));
+    describe("Page", () => {
+        it("renders a heading", () => {
+            render(<Page />);
 
-    describe("login screen", () => {
-        it("renders the login page and checks structure", async () => {
-            render(<Home />);
+            const heading = screen.getByRole("heading", { level: 1 });
 
-            const emailInput = screen.getByPlaceholderText("m@example.com");
-            const passwordInput = screen.getByLabelText("Password");
-            const loginButton = screen.getByText("Login");
-
-            expect(screen.getByLabelText("Email")).toBeInTheDocument();
-            expect(emailInput).toBeInTheDocument();
-            expect(passwordInput).toBeInTheDocument();
-            expect(loginButton).toBeInTheDocument();
+            expect(heading).toBeInTheDocument();
         });
     });
     ```
@@ -360,13 +347,8 @@ Con esto habremos configurado correctamente los tests de usabilidad, ahora solo 
     export default function Home() {
         return (
             <div>
-                <h1 className="m-2 font-bold text-xl">Home</h1>
-                <Link
-                    className="mx-2 my-4 text-neutral-400 hover:text-white duration-300"
-                    href="/about"
-                >
-                    About
-                </Link>
+                <h1>Home</h1>
+                <Link href="/about">About</Link>
             </div>
         );
     }
@@ -380,13 +362,8 @@ Con esto habremos configurado correctamente los tests de usabilidad, ahora solo 
     const About = () => {
         return (
             <div>
-                <h1 className="m-2 font-bold text-xl">About</h1>
-                <Link
-                    className="mx-2 my-4 text-neutral-400 hover:text-white duration-300"
-                    href="/"
-                >
-                    Home
-                </Link>
+                <h1>About</h1>
+                <Link href="/">Home</Link>
             </div>
         );
     };
