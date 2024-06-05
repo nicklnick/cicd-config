@@ -437,6 +437,9 @@ Vamos a crear 2 ambientes: uno de producción y otro de staging. Para ello, debe
 Se pueden seguir los mismo pasos que en [esta guía](./prerrequisitos/ec2-runner.md#2-creación-de-instancias-ec2) para crear la instancias EC2. Notemos que podemos utilizar el mismo security group (`gitlab-sg`). Las ssh key pueden llamarse `staging_key.pem` (para `staging`) y `prod_key.pem` (para `production`).
 Luego de crear las EC2, configuramos Docker en cada una de ellas(si no recordás como hacerlo mirá [esta guía](./prerrequisitos/ec2-docker.md)).
 
+> [!IMPORTANT]
+> Al terminar de configurar las EC2 con Docker, conectarse vía ssh a las instancias y ejecutar el siguiente comando: `echo <pat> | docker login registry.gitlab.com -u <gitlab_username> --password-stdin`. La creación de un `Project Access Token` se puede ver [aquí](./prerrequisitos/gitlab-pat.md).
+
 ### 5.2. Definición de variables y ambientes en GitLab
 
 En primer lugar, creamos los ambientes en GitLab:
@@ -509,17 +512,17 @@ Finalmente, configuramos el job de deployment como sigue:
             ##
             ## Descargar la última imagen del registro
             ##
-            - ssh -o StrictHostKeyChecking=no $DEPLOYMENT_HOST "docker pull ${APP_PROD_IMAGE_NAME}"
+            - ssh -o StrictHostKeyChecking=no ubuntu@$DEPLOYMENT_HOST "docker pull ${APP_PROD_IMAGE_NAME}"
 
             ##
             ## Detener el contenedor en ejecución si existe
             ##
-            - ssh -o StrictHostKeyChecking=no $DEPLOYMENT_HOST 'docker stop webapp || true'
+            - ssh -o StrictHostKeyChecking=no ubuntu@$DEPLOYMENT_HOST 'docker stop webapp || true'
 
             ##
             ## Eliminar el contenedor anterior si existe
             ##
-            - ssh -o StrictHostKeyChecking=no $DEPLOYMENT_HOST 'docker rm webapp || true'
+            - ssh -o StrictHostKeyChecking=no ubuntu@$DEPLOYMENT_HOST 'docker rm webapp || true'
 
             ##
             ## Ejecutar el nuevo contenedor con la imagen más reciente
