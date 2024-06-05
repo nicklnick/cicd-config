@@ -82,6 +82,7 @@ Un pipeline ejecuta una serie de stages, y dentro de cada stage podemos tener un
 -   Preparation: Involucra la preparación del ambiente de trabajo. Aquí definimos las versiones del software, obtenemos artefactos de otros repositorios, etc.
 -   Build: Aquí definimos y generamos los artefactos utilizados en el resto de etapas. Podemos generar artefactos específicos para testing y otros específicos para producción.
 -   Testing: Acá testeamos los artefactos que armamos en la etapa anterior.
+-   Notification: Notificamos a los desarrolladores si los testeos pasaron o no, y si es necesario aprobación manual para la próxima etapa.
 -   Deploy: Ponemos el código en un ambiente productivo.
 
 ```yaml
@@ -89,6 +90,7 @@ stages:
     - prep
     - build
     - test
+    - notification
     - deploy
 ```
 
@@ -154,6 +156,7 @@ stages:
     - prep
     - build
     - test
+    - notification
     - deploy
 
 preparation:
@@ -304,16 +307,16 @@ Este job se encargará de realizar los tests de usabilidad. Para ello utilizarem
 
 6. En el `gitlab-ci.yml`, agregamos el job de uxui con el siguiente contenido:
 
-```yaml
-uxui-test:
-    stage: test
-    image:
-        name: "cypress/included:13.9.0"
-        entrypoint: [""]
-    script:
-        - npm ci
-        - npm run e2e:headless
-```
+    ```yaml
+    uxui-test:
+        stage: test
+        image:
+            name: "cypress/included:13.9.0"
+            entrypoint: [""]
+        script:
+            - npm ci
+            - npm run e2e:headless
+    ```
 
 Con esto habremos configurado correctamente los tests de usabilidad, ahora solo resta armarlos. Para ello haremos dos testeos muy simples.
 
@@ -378,3 +381,85 @@ Con esto habremos configurado correctamente los tests de usabilidad, ahora solo 
         });
     });
     ```
+
+### 4.4: Stage: Notification
+
+> <u>Prerrequisito</u>:
+>
+> -   Tener un servidor de Discord
+
+Para esta etapa buscamos notificar a los desarrolladores si los testeos fueron exitosos o no, y si es necesario realizar una aprobación manual para pasar a la próxima etapa. El stage de _notifiaction_ cuenta con dos jobs ("success_notification" y "failure_notification") para cada uno de los casos.
+Para este ejemplo, se utilizará la plataforma de [Discord](https://discord.com/) para las notificaciones. Además, se realizó un fork de [este repositorio](https://github.com/DiscordHooks/gitlab-ci-discord-webhook) con el fin de agregar comportamiento adicional a las notificaciones.
+
+Necesitamos crear y configurar una variable de entorno de GitLab con el webhook a nuestro servidor de Discord.
+
+1. En Discord, tocamos en alguna categoría y creamos un canal de texto nuevo.
+   <img src="../img/guias/gitlab-pipeline-discord-1.png" width="50%"/>
+2. Ponemos el nombre del canal y tocamos "Crear canal".
+   <img src="../img/guias/gitlab-pipeline-discord-2.png" width="50%"/>
+
+3. Con el canal creado tocamos en la ruedita que aparece a la derecha.
+   <img src="../img/guias/gitlab-pipeline-discord-3.png" width="50%"/>
+
+4. Tocamos en "Integraciones", y luego en "Crear webhook".
+   <img src="../img/guias/gitlab-pipeline-discord-4.png" width="50%"/>
+
+5. Tocamos en "Nuevo webhook"
+   <img src="../img/guias/gitlab-pipeline-discord-5.png" width="50%"/>
+
+6. Cambiamos el nombre del webhook y tocamos en "Copiar URL de webhook", este string será importante en el paso 9.
+   <img src="../img/guias/gitlab-pipeline-discord-6.png" width="50%"/>
+
+7. Vamos nuestro repositorio de GitLab y tocamos en "Settings" > "CI/CD".
+
+8. Clickeamos en Variables donde dice "Expand".
+
+9. Tocamos "Add variable". En "Key" ponemos `DISCORD_WEBHOOK`, y en "Value" la URL que obtuvimos en el paso 6.
+   <img src="../img/guias/gitlab-pipeline-discord-9.png" width="50%"/>
+
+10. Tocamos "Add variable".
+
+Con esto finaliza la creación del webhook y el canal al que se enviarán las notificaciones. Pasaremos a configurar los dos jobs necesarios para esta etapa.
+
+#### Job: success_notification
+
+En nuestro `gitlab-ci.yml` agregamos el siguiente job:
+
+```yaml
+success_notification:
+    image:
+        name: mrnonz/alpine-git-curl:alpine3.16
+        entrypoint: ["/bin/sh", "-c"]
+    stage: notification
+    script:
+        - wget https://raw.githubusercontent.com/elianparedes/gitlab-ci-discord-webhook/master/send.sh
+        - ls -al
+        - chmod +x send.sh
+        - sh send.sh --status waiting --webhook $DISCORD_WEBHOOK
+    when: on_success
+```
+
+Notar que se está utilizando una imagen de [Alpine](https://alpinelinux.org/) con `curl` para que ocupe el menor espacio posible.
+
+#### Job: failure_notification
+
+En nuestro `gitlab-ci.yml` agregamos el siguiente job:
+
+```yaml
+failure_notification:
+    image:
+        name: mrnonz/alpine-git-curl:alpine3.16
+        entrypoint: ["/bin/sh", "-c"]
+    stage: notification
+    script:
+        - wget https://raw.githubusercontent.com/elianparedes/gitlab-ci-discord-webhook/master/send.sh
+        - chmod +x send.sh
+        - latest_image=$(ls -t cypress/screenshots/**/*.png | head -n 1)
+        - mv "$latest_image" failure_screenshot.png
+        - sh send.sh --status failure --webhook $DISCORD_WEBHOOK --image failure_screenshot.png
+    dependencies:
+        - uxui-test
+    when: on_failure
+```
+
+Al igual que en el job anterior, se está utilizando una imagen de Alpine. Además, notar que se está obteniendo la imagen producida por Cypress del fallo de nuestro testeo, y luego es enviada en la notificación a los desarrolladores. Esto es parte del comportamiento adicional que se le agregó al repositorio original y busca dar un mensaje más detallado y preciso al equipo.
