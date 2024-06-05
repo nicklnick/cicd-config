@@ -16,13 +16,17 @@ Comenzaremos dando de alta un registro de contenedores dentro de nuestro reposit
 
 Los pipelines en GitLab deben configurarse en un archivo `gitlab-ci.yml` en el directorio raíz de nuestro proyecto.
 
-Un pipeline ejecuta una serie de stages, y dentro de cada stage podemos tener uno o más jobs. Los stages que se suelen tener son:
+Un pipeline ejecuta una serie de stages, y dentro de cada stage podemos tener uno o más jobs. Los stages que tendremos en este ejemplo son:
 
 -   Preparation: Involucra la preparación del ambiente de trabajo. Aquí definimos las versiones del software, obtenemos artefactos de otros repositorios, etc.
 -   Build: Aquí definimos y generamos los artefactos utilizados en el resto de etapas. Podemos generar artefactos específicos para testing y otros específicos para producción.
 -   Testing: Acá testeamos los artefactos que armamos en la etapa anterior.
 -   Notification: Notificamos a los desarrolladores si los testeos pasaron o no, y si es necesario aprobación manual para la próxima etapa.
 -   Deploy: Ponemos el código en alguno de los ambientes.
+
+## 0. Setup
+
+Lo primero que vamos a hacer es definir todos los stages que mencionamos en el tope del archivo `.gitlab-ci.yml`.
 
 ```yaml
 stages:
@@ -106,8 +110,8 @@ preparation:
 
         - echo "APP_PROD_IMAGE_NAME=${IMAGE_BASE}/app:${CI_COMMIT_BRANCH}-${BUILD_ID}" >> context.env # Concatenamos a context.env el nombre de nuestra imagen de producción
     artifacts:
-    paths:
-        - context.env
+        paths:
+            - context.env
 ```
 
 ## 2. Stage: Build
@@ -128,16 +132,15 @@ Hecho esto, vamos a querer utilizar Kaniko para _buildear_ y _pushear_ la imagen
 
 ```yaml
 build:
-  stage: build
-  image:
-    name: "gcr.io/kaniko-project/executor:v1.14.0-debug"
-    entrypoint: [""]
-  script:
-    - /kaniko/executor
-      --context "${CI_PROJECT_DIR}" # Dónde esta el contexto para buildear la imagen
-      --dockerfile ${CI_PROJECT_DIR}/Dockerfile # Dirección del Dockerfile que creamos en el paso #3
-      --destination $APP_PROD_IMAGE_NAME  # A dónde dejamos la imagen de producción,
-                                          # notemos que la dirección está en el mismo nombre de la imagen (${IMAGE_BASE}/<nombre>)
+    stage: build
+    image:
+        name: "gcr.io/kaniko-project/executor:v1.14.0-debug"
+        entrypoint: [""]
+    script:
+        - /kaniko/executor
+          --context "${CI_PROJECT_DIR}"
+          --dockerfile ${CI_PROJECT_DIR}/Dockerfile
+          --destination $APP_PROD_IMAGE_NAME
 ```
 
 Lo último que debemos hacer es obtener el artifact generado en el paso anterior, por lo que el yaml nos queda como sigue:
@@ -205,12 +208,14 @@ Este archivo configura Jest para que pueda trabajar correctamente con nuestra ap
 4. En el pipeline, vamos a agregar el job de "unit-test" con el siguiente contenido:
 
     ```yaml
-    job: unit-test
+    unit-test:
         stage: test
         image: node:22-alpine3.18
-        scripts:
+        script:
             - npm install
             - npm run test
+    needs:
+        - build
     ```
 
 Teniendo configurado el pipeline para los tests unitarios, vamos a crear uno muy simple.
@@ -253,13 +258,17 @@ Este job se encargará de realizar los tests de usabilidad. Para ello utilizarem
     import { defineConfig } from "cypress";
 
     export default defineConfig({
+        viewportHeight: 1080,
+        viewportWidth: 1920,
+        video: true,
+        screenshotOnRunFailure: true,
         e2e: {
             setupNodeEvents(on, config) {},
         },
     });
     ```
 
-4. Desde la carpeta raíz de nuestro proyecto, corremos `npm install start-server-and-test`. Una vez instalado el paquete, agregamos al `package.json` dentro de la sección de `"scripts"` el siguiente comando: `"test": "start-server-and-test start http://localhost:3000 cypress"`.
+4. Desde la carpeta raíz de nuestro proyecto, corremos `npm install start-server-and-test`.
 
 5. Para poder correr los tests en el pipeline debemos hacerlo en modo headless. Para ello, en el `package.json` dentro de la sección de `"scripts"` agregamos el siguiente comando: `"e2e:headless": "start-server-and-test dev http://localhost:3000 \"cypress run --e2e\""`.
 
@@ -272,8 +281,10 @@ Este job se encargará de realizar los tests de usabilidad. Para ello utilizarem
             name: "cypress/included:13.9.0"
             entrypoint: [""]
         script:
-            - npm ci
+            - npm install
             - npm run e2e:headless
+        needs:
+            - build
     ```
 
 Con esto habremos configurado correctamente los tests de usabilidad, ahora solo resta armarlos. Para ello haremos dos testeos muy simples.
@@ -384,6 +395,9 @@ success_notification:
         - ls -al
         - chmod +x send.sh
         - sh send.sh --status waiting --webhook $DISCORD_WEBHOOK
+    dependencies:
+        - uxui-test
+        - unit-test
     when: on_success
 ```
 
@@ -407,6 +421,7 @@ failure_notification:
         - sh send.sh --status failure --webhook $DISCORD_WEBHOOK --image failure_screenshot.png
     dependencies:
         - uxui-test
+        - unit-test
     when: on_failure
 ```
 

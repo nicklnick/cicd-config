@@ -18,6 +18,10 @@ En esta sección, crearemos un proyecto de Next.js para luego dockerizarlo y pod
     npx create-next-app@latest ./
     ```
 
+    Nos van a empezar a salir distintas opciones, pero dejamos todo como viene predeterminado.
+
+     <img src="../img/guias/nextjs-project-paso2.png" width="70%"/>
+
 3. A continuación podremos probar la aplicación generada con el comando
 
     ```bash
