@@ -92,9 +92,9 @@ stages:
     - deploy
 ```
 
-### 4.1. Job: Preparation
+### 4.1. Stage: Prep
 
-Para el job de preparation vamos a querer generar un ID de nuestra build para que en un futuro podamos identifcarlas.
+Para el stage de _prep_ vamos a tener un único job que llamaremos "preparation", en el que vamos a querer generar un ID de nuestra build para que en un futuro podamos identificar las imágenes que estén pusheadas en el registry de containers.
 
 ```yaml
 preparation:
@@ -168,9 +168,9 @@ preparation:
         - context.env
 ```
 
-### 4.2. Job: Build
+### 4.2. Stage: Build
 
-El job de build trae consigo un inconveniente: la seguridad. La manera fácil de realizar el build de una imagen de Docker dentro de un container es otorgándole a este último privilegios de root, pero esto es poco seguro. Por ello vamos a optar por utilizar [Kaniko](https://github.com/GoogleContainerTools/kaniko), una imagen que hace el build de los contenedores sin necesitar los privilegios.
+El stage de _build_ tendrá un único job "build". Este job trae consigo un inconveniente: la seguridad. La manera fácil de realizar el build de una imagen de Docker dentro de un container es otorgándole a este último privilegios de root, pero esto es poco seguro. Por ello vamos a optar por utilizar [Kaniko](https://github.com/GoogleContainerTools/kaniko), una imagen que hace el build de los contenedores sin necesitar los privilegios de _sudo_.
 
 ```yaml
 build:
@@ -218,3 +218,163 @@ build:
       -  job: preparation
          artifacts: true
 ```
+
+### 4.3. Stage: Test
+
+El stage de _test_ contendrá dos jobs: "unit-test" y "uxui-test".
+
+#### Job: Unit-test
+
+Este job se encargará (como dice su nombre) de realizar los tests unitarios de nuestro código. Para ello utilizaremos el framework de testing [Jest](https://jestjs.io/). La siguiente configuración de ejemplo está fuertemente inspirada en la que se puede encontrar en el siguiente [link](https://nextjs.org/docs/app/building-your-application/testing/jest).
+
+1. Hacemos el set up de Jest _en nuestro proyecto_ (NO en el pipeline), para ello tenemos que instalarlo junto con unos paquetes como dependencias de dev. Esto debe ejecutarse desde el directorio raíz de nuestro proyecto de Next:
+
+    ```bash
+    npm install -D jest jest-environment-jsdom @testing-library/react @testing-library/jest-dom
+    ```
+
+2. En el directorio raíz de nuestro proyecto de Next debemos crear el archivo `jest.config.js` con el siguiente contenido:
+
+    ```javascript
+    const nextJest = require("next/jest");
+
+    /** @type {import('jest').Config} */
+    const createJestConfig = nextJest({
+        // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
+        dir: "./",
+    });
+
+    // Add any custom config to be passed to Jest
+    const config = {
+        coverageProvider: "v8",
+        testEnvironment: "jsdom",
+        // Add more setup options before each test is run
+        // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+    };
+
+    // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
+    module.exports = createJestConfig(config);
+    ```
+
+Este archivo configura Jest para que pueda trabajar correctamente con nuestra aplicación de Next.
+
+3. En el `package.json` agregamos el comando `"test": "jest"` dentor de `"scripts"`.
+
+4. En el pipeline, vamos a agregar el job de "unit-test" con el siguiente contenido:
+
+    ```yaml
+    job: unit-test
+        stage: test
+        image: node:22-alpine3.18
+        scripts:
+            - npm install
+            - npm run test
+    ```
+
+# FALTA PONER LOS TESTS UNITARIOS
+
+#### Job: Uxui-test
+
+Este job se encargará de realizar los tests de usabilidad. Para ello utilizaremos el framework de testing [Cypress](https://www.cypress.io/). La siguiente configuración está fuertemente inspirada en el tutorial del siguiente [link](https://nextjs.org/docs/pages/building-your-application/testing/cypress).
+
+1. En la carpeta raíz del proyecto ejecutamos el siguiente comando:
+
+    ```bash
+    npm install -D cypress
+    ```
+
+2. En el archivo `package.json`, dentro de la sección de `"scripts"` agregamos el siguiente comando: `"cypress:open": "cypress open"`.
+
+3. Parados en la carpeta raíz de nuestro proyecto, corremos el comando `npm run cypress:open`. Esto nos dará a elegir entre **E2E Testing** y **Component Testing**. Nosotros elegiremos hacer **E2E Testing**.
+   Esto nos creará un archivo `cypress.config.ts` y una carpeta `cypress/`. Chequear que el contenido de `cypress.config.ts` sea el siguiente:
+
+    ```typescript
+    import { defineConfig } from "cypress";
+
+    export default defineConfig({
+        e2e: {
+            setupNodeEvents(on, config) {},
+        },
+    });
+    ```
+
+4. Desde la carpeta raíz de nuestro proyecto, corremos `npm install start-server-and-test`. Una vez instalado el paquete, agregamos al `package.json` dentro de la sección de `"scripts"` el siguiente comando: `"test": "start-server-and-test start http://localhost:3000 cypress"`.
+
+5. Para poder correr los tests en el pipeline debemos hacerlo en modo headless. Para ello, en el `package.json` dentro de la sección de `"scripts"` agregamos el siguiente comando: `"e2e:headless": "start-server-and-test dev http://localhost:3000 \"cypress run --e2e\""`.
+
+6. En el `gitlab-ci.yml`, agregamos el job de uxui con el siguiente contenido:
+
+```yaml
+uxui-test:
+    stage: test
+    image:
+        name: "cypress/included:13.9.0"
+        entrypoint: [""]
+    script:
+        - npm ci
+        - npm run e2e:headless
+```
+
+Con esto habremos configurado correctamente los tests de usabilidad, ahora solo resta armarlos. Para ello haremos dos testeos muy simples.
+
+1. Agregar/Modificar el archivo `src/app/page.tsx`:
+
+    ```tsx
+    import Link from "next/link";
+
+    export default function Home() {
+        return (
+            <div>
+                <h1 className="m-2 font-bold text-xl">Home</h1>
+                <Link
+                    className="mx-2 my-4 text-neutral-400 hover:text-white duration-300"
+                    href="/about"
+                >
+                    About
+                </Link>
+            </div>
+        );
+    }
+    ```
+
+2. Agregar el archivo `src/app/about/page.tsx`:
+
+    ```tsx
+    import Link from "next/link";
+
+    const About = () => {
+        return (
+            <div>
+                <h1 className="m-2 font-bold text-xl">About</h1>
+                <Link
+                    className="mx-2 my-4 text-neutral-400 hover:text-white duration-300"
+                    href="/"
+                >
+                    Home
+                </Link>
+            </div>
+        );
+    };
+
+    export default About;
+    ```
+
+3. Agregamos un test para asegurarnos que la navegación esté funcionando correctamente. Para ello agregamos el archivo `cypress/e2e/app.cy.js`:
+
+    ```javascript
+    describe("Navigation", () => {
+        it("should navigate to the about page", () => {
+            // Start from the index page
+            cy.visit("http://localhost:3000/");
+
+            // Find a link with an href attribute containing "about" and click it
+            cy.get('a[href*="about"]').click();
+
+            // The new url should include "/about"
+            cy.url().should("include", "/about");
+
+            // The new page should contain an h1 with "About"
+            cy.get("h1").contains("About");
+        });
+    });
+    ```

@@ -7,9 +7,9 @@ Dado que el campo de CI/CD es muy amplio, optamos por poner una configuración a
 
 Las carpetas que pueden encontrarse en el proyecto son:
 
-- `img`: Contiene las imágenes que se utilizan en las guías.
-- `guias`: Contiene las guías per se.
-  - `prerrequisitos`: Algunas de las guías tienen prerrequisitos, si no se sabe cómo llevarlos a cabo se incluyeron guías para esto también.
+-   `img`: Contiene las imágenes que se utilizan en las guías.
+-   `guias`: Contiene las guías per se.
+    -   `prerrequisitos`: Algunas de las guías tienen prerrequisitos, si no se sabe cómo llevarlos a cabo se incluyeron guías para esto también.
 
 ## ¿Por dónde empiezo?
 
@@ -23,7 +23,7 @@ En violeta se muestra el archivo al que se debe acceder (se encuentra dentro de 
 
 Este proyecto fue realizado como TP especial para la materia _72.20 - Redes de la Información_ (2024 1C) por el equipo conformado por:
 
-- Nicolás Margenat (n° 62028)
-- Juan Burda (n° 62094)
-- Elian Paredes (n° 62493)
-- Saul Castañeda (n° 62504)
+-   Nicolás Margenat (n° 62028)
+-   Juan Burda (n° 62094)
+-   Saul Castañeda (n° 62493)
+-   Elian Paredes (n° 62504)
