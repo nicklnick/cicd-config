@@ -274,7 +274,39 @@ Este archivo configura Jest para que pueda trabajar correctamente con nuestra ap
             - npm run test
     ```
 
-# FALTA PONER LOS TESTS UNITARIOS
+Teniendo configurado el pipeline para los tests unitarios, vamos a crear uno muy simple.
+
+1. En la carpeta raíz del proyecto creamos la carpeta `__tests__/`.
+2. Dentro de `__tests__/` creamos el archivo `page.test.tsx` con el siguiente contenido:
+
+    ```tsx
+    import "@testing-library/jest-dom";
+    import { render, screen } from "@testing-library/react";
+    import Home from "../src/app/page";
+
+    jest.mock("next/navigation", () => ({
+        useRouter() {
+            return {
+                prefetch: () => null,
+            };
+        },
+    }));
+
+    describe("login screen", () => {
+        it("renders the login page and checks structure", async () => {
+            render(<Home />);
+
+            const emailInput = screen.getByPlaceholderText("m@example.com");
+            const passwordInput = screen.getByLabelText("Password");
+            const loginButton = screen.getByText("Login");
+
+            expect(screen.getByLabelText("Email")).toBeInTheDocument();
+            expect(emailInput).toBeInTheDocument();
+            expect(passwordInput).toBeInTheDocument();
+            expect(loginButton).toBeInTheDocument();
+        });
+    });
+    ```
 
 #### Job: Uxui-test
 
@@ -395,7 +427,6 @@ Necesitamos crear y configurar una variable de entorno de GitLab con el webhook 
 
 1. En Discord, tocamos en alguna categoría y creamos un canal de texto nuevo.
    <img src="../img/guias/gitlab-pipeline-discord-1.png" width="50%"/>
-   
 2. Ponemos el nombre del canal y tocamos "Crear canal".  
    <img src="../img/guias/gitlab-pipeline-discord-2.png" width="50%"/>
 
