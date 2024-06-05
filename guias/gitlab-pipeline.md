@@ -395,27 +395,28 @@ Necesitamos crear y configurar una variable de entorno de GitLab con el webhook 
 
 1. En Discord, tocamos en alguna categoría y creamos un canal de texto nuevo.
    <img src="../img/guias/gitlab-pipeline-discord-1.png" width="50%"/>
-2. Ponemos el nombre del canal y tocamos "Crear canal".
+   
+2. Ponemos el nombre del canal y tocamos "Crear canal".  
    <img src="../img/guias/gitlab-pipeline-discord-2.png" width="50%"/>
 
-3. Con el canal creado tocamos en la ruedita que aparece a la derecha.
+3. Con el canal creado tocamos en la ruedita que aparece a la derecha.  
    <img src="../img/guias/gitlab-pipeline-discord-3.png" width="50%"/>
 
-4. Tocamos en "Integraciones", y luego en "Crear webhook".
+4. Tocamos en "Integraciones", y luego en "Crear webhook".  
    <img src="../img/guias/gitlab-pipeline-discord-4.png" width="50%"/>
 
-5. Tocamos en "Nuevo webhook"
+5. Tocamos en "Nuevo webhook".  
    <img src="../img/guias/gitlab-pipeline-discord-5.png" width="50%"/>
 
-6. Cambiamos el nombre del webhook y tocamos en "Copiar URL de webhook", este string será importante en el paso 9.
+6. Cambiamos el nombre del webhook y tocamos en "Copiar URL de webhook", este string será importante en el paso 9.  
    <img src="../img/guias/gitlab-pipeline-discord-6.png" width="50%"/>
 
 7. Vamos nuestro repositorio de GitLab y tocamos en "Settings" > "CI/CD".
 
 8. Clickeamos en Variables donde dice "Expand".
 
-9. Tocamos "Add variable". En "Key" ponemos `DISCORD_WEBHOOK`, y en "Value" la URL que obtuvimos en el paso 6.
-   <img src="../img/guias/gitlab-pipeline-discord-9.png" width="50%"/>
+9. Tocamos "Add variable". En "Key" ponemos `DISCORD_WEBHOOK`, y en "Value" la URL que obtuvimos en el paso 6.  
+   <img src="../img/guias/gitlab-pipeline-discord-9.png" width="30%"/>
 
 10. Tocamos "Add variable".
 
