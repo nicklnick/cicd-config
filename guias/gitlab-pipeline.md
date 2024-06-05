@@ -527,7 +527,7 @@ Finalmente, configuramos el job de deployment como sigue:
             ##
             ## Ejecutar el nuevo contenedor con la imagen más reciente
             ##
-            - ssh -o StrictHostKeyChecking=no $DEPLOYMENT_HOST "docker run -d --name webapp -p 3000:3000 ${APP_PROD_IMAGE_NAME}"
+            - ssh -o StrictHostKeyChecking=no ubuntu@$DEPLOYMENT_HOST "docker run -d --name webapp -p 3000:3000 ${APP_PROD_IMAGE_NAME}"
         dependencies:
             - preparation
     ```
