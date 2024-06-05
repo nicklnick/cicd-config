@@ -26,16 +26,16 @@ Luego de crear la instancia, siguiendo con lo explicado en secciones anteriores,
 
 ## 2. Configuración de acceso a EC2 de producción
 
-Tal como se nombró previamente, debemos tener una forma de comunicación entre la instancia del `runner` y la instancia de producción `prod`. Hemos generado otra clave privada denominada`prod_key`, la cual vamos a utilizar ahora para generar el acceso a la instancia de `prod` desde el `runner`.
+Tal como se nombró previamente, debemos tener una forma de comunicación entre la instancia del `runner` y la instancia de producción `prod`. Hemos generado otra clave privada denominada `prod_key`, la cual vamos a utilizar ahora para generar el acceso a la instancia de `prod` desde el `runner`.
 
 Sin embargo, en lugar de utilizar el archivo `.pem` para acceder a la instancia de producción, haremos uso de las variables de entorno CI/CD que nos ofrece GitLab. Vamos a seguir una de las practicas que exponen en su documentación sobre [cómo utilizar claves SSH dentro de un pipeline de CI/CD](<https://docs.gitlab.com/ee/ci/ssh_keys/#:~:text=To%20create%20and%20use%20an,a%20newline%20(%20LF%20character).>).
 
 1. En el menú de la izquierda de la pantalla principal de nuetro repositorio, clickeamos "Settings" > "CI/CD".
-2. A diferencia de los pasos anteriores elegiremos como "Type" una variable de tipo `File`. Elegimos una "Key" para la variable. Esta "Key" será la forma en la cual nos referiremos a la misma dentro de la definición del Pipeline, en nuestro caso `PROD_SSH_KEY`.  
+2. A diferencia de los pasos anteriores elegiremos como "Type" una variable de tipo `File`. Elegimos una "Key" para la variable. Esta "Key" será la forma en la cual nos referiremos a la misma dentro de la definición del Pipeline, en nuestro caso `SSH_KEY`.
 
-   <img src="../img/guias/gitlab-pipeline-prod_access-paso2.png" width="30%"/>
+ <img src="../img/guias/gitlab-pipeline-prod_access-paso2.png" width="30%"/>
 
-3. A continuación debemos colocar el valor que contendrá esta clave. Para esto copiaremos el contenido del archivo `prod_key.pem` que descargamos previamente desde AWS y lo pegaremos como valor de esta variable `PROD_SSH_KEY`.
+3. A continuación debemos colocar el valor que contendrá esta clave. Para esto copiaremos el contenido del archivo `prod_key.pem` que descargamos previamente desde AWS y lo pegaremos como valor de esta variable `SSH_KEY`.
    <img src="../img/guias/gitlab-pipeline-prod_access-paso3.png" width="30%"/>
 
 > [!IMPORTANT]
@@ -135,7 +135,7 @@ preparation:
         - export BUILD_ID=$(date +%Y%m%d%H%M) # Generamos un id para la build
         - echo "BUILD_ID=${BUILD_ID}" > context.env # Lo guardamos en context.env
 
-        - echo "APP_PROD_IMAGE_NAME=${IMAGE_BASE}/app:prod-${BUILD_ID}" >> context.env # Concatenamos a context.env el nombre de nuestra imagen de producción
+        - echo "APP_PROD_IMAGE_NAME=${IMAGE_BASE}/app:${CI_COMMIT_BRANCH}-${BUILD_ID}" >> context.env # Concatenamos a context.env el nombre de nuestra imagen de producción
 ```
 
 Falta entonces poner la imagen default que se utilizará para ejecutar estos jobs. Para ello, vamos a agregar al tope del archivo lo siguiente:
@@ -165,7 +165,7 @@ preparation:
         - export BUILD_ID=$(date +%Y%m%d%H%M) # Generamos un id para la build
         - echo "BUILD_ID=${BUILD_ID}" > context.env # Lo guardamos en context.env
 
-        - echo "APP_PROD_IMAGE_NAME=${IMAGE_BASE}/app:prod-${BUILD_ID}" >> context.env # Concatenamos a context.env el nombre de nuestra imagen de producción
+        - echo "APP_PROD_IMAGE_NAME=${IMAGE_BASE}/app:${CI_COMMIT_BRANCH}-${BUILD_ID}" >> context.env # Concatenamos a context.env el nombre de nuestra imagen de producción
     artifacts:
     paths:
         - context.env
@@ -391,7 +391,7 @@ Con esto habremos configurado correctamente los tests de usabilidad, ahora solo 
     });
     ```
 
-### 4.4: Stage: Notification
+### 4.4. Stage: Notification
 
 > <u>Prerrequisito</u>:
 >
@@ -472,3 +472,120 @@ failure_notification:
 ```
 
 Al igual que en el job anterior, se está utilizando una imagen de Alpine. Además, notar que se está obteniendo la imagen producida por Cypress del fallo de nuestro testeo, y luego es enviada en la notificación a los desarrolladores. Esto es parte del comportamiento adicional que se le agregó al repositorio original y busca dar un mensaje más detallado y preciso al equipo.
+
+### 4.5. Stage: Deploy
+
+El último stage de nuestro pipeline busca deployar nuestra aplicación en alguno de nuestros ambientes.
+
+#### A. Creación de ambientes
+
+Vamos a crear 2 ambientes: uno de producción y otro de staging. Para ello, debemos crear una instancia EC2 adicional a las dos que ya teníamos (`runner` y `prod`). Recordemos que la instancia de `prod` es nuestro servidor de producción, y el `runner` es una instancia que se encarga de correr el pipeline. Ahora queremos crear un tercer servidor: el de staging. Para eso se pueden seguir los mismo pasos que en [esta guía](./prerrequisitos/ec2-runner.md#2-creación-de-instancias-ec2) para crear la instancias EC2. Notemos que podemos utilizar el mismo security group (`gitlab-sg`). La ssh key puede llamarse `staging_key.pem`.
+
+#### B. Definición de variables y ambientes en GitLab
+
+En primer lugar, creamos los ambientes en GitLab:
+
+1. En nuestro repositorio vamos a "Operate" > "Environments".
+
+2. Tocando en "New environment" creamos 2 environments: `production` y `staging` (probablemente ya esté creado el de `production`).
+
+Luego, creamos las variables asociadas a estos ambientes:
+
+1. Vamos a "Settings" > "CI/CD".
+
+2. Tocamos en "Variables" > "Expand" > "Add variables".
+
+3. Creamos la variable que contiene la ssh key para el ambiente de `production` (es análogo para `staging`):
+
+    1. Ponemos que la variable es de tipo "File".
+    2. En el campo "Environments" ponemos el de `production`.  
+       <img src="../img/guias/gitlab-pipeline-deploy-3.png" width="30%"/>
+    3. En "Key" ponemos `SSH_KEY`.
+    4. En "Value" ponemos la ssh key teniendo cuidado de dejar una nueva línea al final del archivo.
+
+4. Creamos la variable que contiene el dominio de la instancia EC2 de `production` (es análogo para `staging`):
+    1. En el campo "Environments" ponemos el de `production`.
+    2. En "Key" ponemos `DEPLOYMENT_HOST`
+    3. En "Value" ponemos el dominio de nuestra instancia (ej. ec2-100-26-163-175.compute-1.amazonaws.com)
+
+#### C. Creación de las branches
+
+En nuestro proyecto de Git deberíamos crear una branch `staging` para que podamos usarla como ambiente de `staging`.
+
+#### D. Creación del job de deployment
+
+Finalmente, configuramos el job de deployment como sigue:
+
+1. Dado que el proceso de deploy es análogo en ambos ambientes, podemos crear un template para que se ejecute solo cuando se pusheen cambios a la branch designada para ese ambiente.
+
+    ```yaml
+    .deploy_template: &deploy_configuration
+        stage: deploy
+        before_script:
+            ##
+            ## Instalar ssh-agent si no está ya instalado, es requerido por Docker.
+            ## (cambia apt-get por yum si usas una imagen basada en RPM)
+            ##
+            - "command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )"
+
+            ##
+            ## Ejecutar ssh-agent (dentro del entorno de construcción)
+            ##
+            - eval $(ssh-agent -s)
+
+            ##
+            ## Dar los permisos correctos, de lo contrario ssh-add se negará a añadir archivos
+            ## Añadir la clave SSH almacenada en la variable de tipo archivo SSH_PRIVATE_KEY del CI/CD al almacén del agente
+            ##
+            - chmod 400 "$SSH_KEY"
+            - ssh-add "$SSH_KEY"
+
+            ##
+            ## Crear el directorio SSH y darle los permisos correctos
+            ##
+            - mkdir -p ~/.ssh
+            - chmod 700 ~/.ssh
+        script:
+            - export $(cat context.env | xargs)
+
+            ##
+            ## Descargar la última imagen del registro
+            ##
+            - ssh -o StrictHostKeyChecking=no $DEPLOYMENT_HOST "docker pull ${APP_PROD_IMAGE_NAME}"
+
+            ##
+            ## Detener el contenedor en ejecución si existe
+            ##
+            - ssh -o StrictHostKeyChecking=no $DEPLOYMENT_HOST 'docker stop webapp || true'
+
+            ##
+            ## Eliminar el contenedor anterior si existe
+            ##
+            - ssh -o StrictHostKeyChecking=no $DEPLOYMENT_HOST 'docker rm webapp || true'
+
+            ##
+            ## Ejecutar el nuevo contenedor con la imagen más reciente
+            ##
+            - ssh -o StrictHostKeyChecking=no $DEPLOYMENT_HOST "docker run -d --name webapp -p 3000:3000 ${APP_PROD_IMAGE_NAME}"
+        dependencies:
+            - preparation
+    ```
+
+2. Ahora creamos el job que asocia la branch con el ambiente, y que hace uso del template.
+
+    ```yaml
+    deploy-prod:
+        <<: *deploy_configuration
+        only:
+            - main
+        environment:
+            name: production
+        when: manual
+
+    deploy-staging:
+        <<: *deploy_configuration
+        only:
+            - staging
+        environment:
+            name: staging
+    ```
