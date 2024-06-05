@@ -31,9 +31,9 @@ Tal como se nombró previamente, debemos tener una forma de comunicación entre 
 Sin embargo, en lugar de utilizar el archivo `.pem` para acceder a la instancia de producción, haremos uso de las variables de entorno CI/CD que nos ofrece GitLab. Vamos a seguir una de las practicas que exponen en su documentación sobre [cómo utilizar claves SSH dentro de un pipeline de CI/CD](<https://docs.gitlab.com/ee/ci/ssh_keys/#:~:text=To%20create%20and%20use%20an,a%20newline%20(%20LF%20character).>).
 
 1. En el menú de la izquierda de la pantalla principal de nuetro repositorio, clickeamos "Settings" > "CI/CD".
-2. A diferencia de los pasos anteriores elegiremos como "Type" una variable de tipo `File`. Elegimos una "Key" para la variable. Esta "Key" será la forma en la cual nos referiremos a la misma dentro de la definición del Pipeline, en nuestro caso `PROD_SSH_KEY`
+2. A diferencia de los pasos anteriores elegiremos como "Type" una variable de tipo `File`. Elegimos una "Key" para la variable. Esta "Key" será la forma en la cual nos referiremos a la misma dentro de la definición del Pipeline, en nuestro caso `PROD_SSH_KEY`.  
 
- <img src="../img/guias/gitlab-pipeline-prod_access-paso2.png" width="30%"/>
+   <img src="../img/guias/gitlab-pipeline-prod_access-paso2.png" width="30%"/>
 
 3. A continuación debemos colocar el valor que contendrá esta clave. Para esto copiaremos el contenido del archivo `prod_key.pem` que descargamos previamente desde AWS y lo pegaremos como valor de esta variable `PROD_SSH_KEY`.
    <img src="../img/guias/gitlab-pipeline-prod_access-paso3.png" width="30%"/>
@@ -402,10 +402,10 @@ Para este ejemplo, se utilizará la plataforma de [Discord](https://discord.com/
 
 Necesitamos crear y configurar una variable de entorno de GitLab con el webhook a nuestro servidor de Discord.
 
-1. En Discord, tocamos en alguna categoría y creamos un canal de texto nuevo.
-   <img src="../img/guias/gitlab-pipeline-discord-1.png" width="50%"/>
+1. En Discord, tocamos en alguna categoría y creamos un canal de texto nuevo.  
+   <img src="../img/guias/gitlab-pipeline-discord-1.png" width="30%"/>
 2. Ponemos el nombre del canal y tocamos "Crear canal".  
-   <img src="../img/guias/gitlab-pipeline-discord-2.png" width="50%"/>
+   <img src="../img/guias/gitlab-pipeline-discord-2.png" width="30%"/>
 
 3. Con el canal creado tocamos en la ruedita que aparece a la derecha.  
    <img src="../img/guias/gitlab-pipeline-discord-3.png" width="50%"/>
