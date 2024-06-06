@@ -443,7 +443,7 @@ Se pueden seguir los mismo pasos que en [esta guía](./prerrequisitos/ec2-runner
 Luego de crear las EC2, configuramos Docker en cada una de ellas(si no recordás como hacerlo mirá [esta guía](./prerrequisitos/ec2-docker.md)).
 
 > [!IMPORTANT]
-> Al terminar de configurar las EC2 con Docker, conectarse vía ssh a las instancias y ejecutar el siguiente comando: `echo <pat> | docker login registry.gitlab.com -u <gitlab_username> --password-stdin`. La creación de un `Project Access Token` se puede ver [aquí](./prerrequisitos/gitlab-pat.md).
+> Al terminar de configurar las EC2 con Docker, conectarse vía ssh a las instancias y ejecutar el siguiente comando: `sudo docker login registry.gitlab.com -u <gitlab_username> -p <pat>`. La creación de un `Project Access Token` se puede ver [aquí](./prerrequisitos/gitlab-pat.md).
 
 ### 5.2. Definición de variables y ambientes en GitLab
 
