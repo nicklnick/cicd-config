@@ -467,7 +467,7 @@ Luego, creamos las variables asociadas a estos ambientes:
 4. Creamos la variable que contiene el dominio de la instancia EC2 de `production` (es análogo para `staging`):
     1. En el campo "Environments" ponemos el de `production`.
     2. En "Key" ponemos `DEPLOYMENT_HOST`
-    3. En "Value" ponemos el dominio de nuestra instancia (ej. ec2-101-26-163-175.compute-1.amazonaws.com)
+    3. En "Value" ponemos el dominio y usuario de nuestra instancia (ej. ubuntu@ec2-101-26-163-175.compute-1.amazonaws.com)
 
 ### 5.3. Creación de las branches
 
@@ -512,22 +512,22 @@ Finalmente, configuramos el job de deployment como sigue:
             ##
             ## Descargar la última imagen del registro
             ##
-            - ssh -o StrictHostKeyChecking=no ubuntu@$DEPLOYMENT_HOST "docker pull ${APP_PROD_IMAGE_NAME}"
+            - ssh -o StrictHostKeyChecking=no $DEPLOYMENT_HOST "docker pull ${APP_PROD_IMAGE_NAME}"
 
             ##
             ## Detener el contenedor en ejecución si existe
             ##
-            - ssh -o StrictHostKeyChecking=no ubuntu@$DEPLOYMENT_HOST 'docker stop webapp || true'
+            - ssh -o StrictHostKeyChecking=no $DEPLOYMENT_HOST 'docker stop webapp || true'
 
             ##
             ## Eliminar el contenedor anterior si existe
             ##
-            - ssh -o StrictHostKeyChecking=no ubuntu@$DEPLOYMENT_HOST 'docker rm webapp || true'
+            - ssh -o StrictHostKeyChecking=no $DEPLOYMENT_HOST 'docker rm webapp || true'
 
             ##
             ## Ejecutar el nuevo contenedor con la imagen más reciente
             ##
-            - ssh -o StrictHostKeyChecking=no ubuntu@$DEPLOYMENT_HOST "docker run -d --name webapp -p 3000:3000 ${APP_PROD_IMAGE_NAME}"
+            - ssh -o StrictHostKeyChecking=no $DEPLOYMENT_HOST "docker run -d --name webapp -p 3000:3000 ${APP_PROD_IMAGE_NAME}"
         dependencies:
             - preparation
     ```
