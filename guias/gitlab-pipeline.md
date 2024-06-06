@@ -18,11 +18,11 @@ Los pipelines en GitLab deben configurarse en un archivo `gitlab-ci.yml` en el d
 
 Un pipeline ejecuta una serie de stages, y dentro de cada stage podemos tener uno o más jobs. Los stages que tendremos en este ejemplo son:
 
--   Preparation: Involucra la preparación del ambiente de trabajo. Aquí definimos las versiones del software, obtenemos artefactos de otros repositorios, etc.
--   Build: Aquí definimos y generamos los artefactos utilizados en el resto de etapas. Podemos generar artefactos específicos para testing y otros específicos para producción.
--   Testing: Acá testeamos los artefactos que armamos en la etapa anterior.
--   Notification: Notificamos a los desarrolladores si los testeos pasaron o no, y si es necesario aprobación manual para la próxima etapa.
--   Deploy: Ponemos el código en alguno de los ambientes.
+-   **Preparation**: Involucra la preparación del ambiente de trabajo. Aquí definimos las versiones del software, obtenemos artefactos de otros repositorios, etc.
+-   **Build**: Aquí definimos y generamos los artefactos utilizados en el resto de etapas. Podemos generar artefactos específicos para testing y otros específicos para producción.
+-   **Testing**: Acá testeamos los artefactos que armamos en la etapa anterior.
+-   **Notification**: Notificamos a los desarrolladores si los testeos pasaron o no, y si es necesario aprobación manual para la próxima etapa.
+-   **Deploy**: Ponemos el código en alguno de los ambientes.
 
 ## 0. Setup
 
