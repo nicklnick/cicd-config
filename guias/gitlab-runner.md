@@ -2,14 +2,17 @@
 
 A continuación se configurará un Runner de GitLab. Este se encargará de gestionar las peticiones de ejecución de un pipeline definido desde GitLab. La propia plataforma de GitLab nos guiará para configurar nuestra EC2 para que actúe como un Runner asociado a nuestro repositorio.
 
+> [!NOTE]
+> Se puede omitir esta parte y utilizar los GitLab Runners, para ello no tenemos que hacer nada ya que es la opción por defecto. Ambas opciones son buenas, aunque para un entorno real lo recomendable es utilizar instancias EC2.
+
 > <u>Prerrequisitos</u>:
 >
-> - Crear un repositorio de GitLab ([link](./prerrequisitos/gitlab-repo.md))
-> - Tener una instancia EC2 ([link](./prerrequisitos/ec2-runner.md)) con Docker ([link](./prerrequisitos/ec2-docker.md)), y con estas características:
->   - _Sistema operativo_: Ubuntu Server 24.04 LTS con arquitectura x86
->   - _Tipo de instancia_: t2.medium
->   - _Par de claves_: ED25519
->   - _Almacenamiento_: >= 32Gb
+> -   Crear un repositorio de GitLab ([link](./prerrequisitos/gitlab-repo.md))
+> -   Tener una instancia EC2 ([link](./prerrequisitos/ec2-runner.md)) con Docker ([link](./prerrequisitos/ec2-docker.md)), y con estas características:
+>     -   _Sistema operativo_: Ubuntu Server 24.04 LTS con arquitectura x86
+>     -   _Tipo de instancia_: t2.medium
+>     -   _Par de claves_: ED25519
+>     -   _Almacenamiento_: >= 32Gb
 
 ## 1. Creación del Runner
 
@@ -18,11 +21,11 @@ A continuación se configurará un Runner de GitLab. Este se encargará de gesti
 
 2. Expandimos la sección de "Runners" y tocamos en el botón de "New Project Runner"
 
-   <img src="../img/guias/gitlab-runner-paso2.png" width="80%"/>
+    <img src="../img/guias/gitlab-runner-paso2.png" width="80%"/>
 
 3. Se nos pedirá ingresar un _tag_ para identificar el Runner. Podríamos colocar un tag como por ejemplo `ubuntu` para conocer rápidamente en qué sistema operativo se encuentra corriendo. A continuación clickeamos en "Create runner".
 
-   <img src="../img/guias/gitlab-runner-paso3.png" width="90%"/>
+    <img src="../img/guias/gitlab-runner-paso3.png" width="90%"/>
 
 > [!IMPORTANT]
 > Es importante marcar la opción `Run untagged jobs`, para que no sea necesario colocar un `tag` al querer correr un pipeline
@@ -36,30 +39,30 @@ Esta siguiente etapa de configuración, consiste en la conexión y asociación d
 1. Nos conectamos a la instancia EC2 a través de SSH (si no sabés como hacerlo podés ver [este tutorial](./prerrequisitos/ec2-runner.md#3-conexión-a-una-instancia-ec2)).
 2. Una vez dentro de la instancia EC2, comenzaremos con la instalación de GitLab Runner
 
-   1. Descargamos el binario correspondiente para nuestro sistema. Dado que estamos en arquitectura de 64 bits (x86) ejecutamos:
+    1. Descargamos el binario correspondiente para nuestro sistema. Dado que estamos en arquitectura de 64 bits (x86) ejecutamos:
 
-      ```bash
-      sudo curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64
-      ```
+        ```bash
+        sudo curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64
+        ```
 
-   2. Le damos permisos de ejecución:
+    2. Le damos permisos de ejecución:
 
-      ```bash
-      sudo chmod +x /usr/local/bin/gitlab-runner
-      ```
+        ```bash
+        sudo chmod +x /usr/local/bin/gitlab-runner
+        ```
 
-   3. Creamos un usuario específico para GitLab Runner:
+    3. Creamos un usuario específico para GitLab Runner:
 
-      ```bash
-      sudo useradd --comment 'GitLab Runner' --create-home gitlab-runner --shell /bin/bash
-      ```
+        ```bash
+        sudo useradd --comment 'GitLab Runner' --create-home gitlab-runner --shell /bin/bash
+        ```
 
-   4. Hacemos la instalación de la aplicación e inicializamos el servicio:
+    4. Hacemos la instalación de la aplicación e inicializamos el servicio:
 
-      ```bash
-      sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
-      sudo gitlab-runner start
-      ```
+        ```bash
+        sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
+        sudo gitlab-runner start
+        ```
 
 3. Volviendo a GitLab, en el último paso de la [sección anterior](#1-creación-del-runner) fuimos redirigidos a una página en donde se muestran una serie de pasos a seguir.
 
@@ -73,6 +76,7 @@ Esta siguiente etapa de configuración, consiste en la conexión y asociación d
    2. Daremos `Enter` en las primeras opciones hasta llegar a la selección del `executor`. Aquí seleccionaremos la opción `docker`.
    3. Ingresamos `docker:24.0.7` como imagen por defecto.
    4. Ejecutamos:
+
       ```bash
       gitlab-runner run &
       ```
@@ -91,9 +95,9 @@ Esta siguiente etapa de configuración, consiste en la conexión y asociación d
    ```bash
 
    [runners.docker]
-       ...
-       privileged = true
-       ...
+      ...
+      privileged = true
+      ...
    ```
 
 > [!NOTE]

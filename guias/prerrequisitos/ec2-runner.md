@@ -1,6 +1,6 @@
 # Configuración de instancias EC2
 
-Esta guía se centra en la creación de una instancia EC2 para correr nuestro GitLab Runner.
+Esta guía se centra en la creación de una instancia EC2.
 
 ## 1. Creando un Security Group
 

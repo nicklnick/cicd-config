@@ -1,4 +1,4 @@
-# Creación de un pipeline en GitLab
+# 1. Creación de un pipeline en GitLab
 
 A grandes rasgos, el proceso de despliegue denota los siguientes pasos:
 
@@ -283,6 +283,11 @@ Este job se encargará de realizar los tests de usabilidad. Para ello utilizarem
         script:
             - npm ci
             - npm run e2e:headless
+        artifacts:
+            name: failure-screenshots
+            when: on_failure
+            paths:
+                - cypress/screenshots/
         needs:
             - build
     ```
@@ -438,7 +443,7 @@ Se pueden seguir los mismo pasos que en [esta guía](./prerrequisitos/ec2-runner
 Luego de crear las EC2, configuramos Docker en cada una de ellas(si no recordás como hacerlo mirá [esta guía](./prerrequisitos/ec2-docker.md)).
 
 > [!IMPORTANT]
-> Al terminar de configurar las EC2 con Docker, conectarse vía ssh a las instancias y ejecutar el siguiente comando: `echo <pat> | docker login registry.gitlab.com -u <gitlab_username> --password-stdin`. La creación de un `Project Access Token` se puede ver [aquí](./prerrequisitos/gitlab-pat.md).
+> Al terminar de configurar las EC2 con Docker, conectarse vía ssh a las instancias y ejecutar el siguiente comando: `sudo docker login registry.gitlab.com -u <gitlab_username> -p <pat>`. La creación de un `Project Access Token` se puede ver [aquí](./prerrequisitos/gitlab-pat.md).
 
 ### 5.2. Definición de variables y ambientes en GitLab
 
@@ -553,3 +558,17 @@ Finalmente, configuramos el job de deployment como sigue:
     ```
 
     Notemos que estamos pidiendo aprobación manual en el caso de que se trate de un deploy a producción.
+
+# 2. Envío de mails
+
+Si además de querer enviar notificaciones por Discord queremos enviarlas por mail podemos seguir lo que dice [esta guía](https://docs.gitlab.com/ee/user/project/integrations/pipeline_status_emails.html).
+
+1. En el repositorio, tocar en "Settings" > "Integrations".
+2. Seleccionar "Pipeline status emails".
+3. Chequear que la checkbox "Active" esté seleccionada.
+4. En "Recipients" poner una lista separada por comas de los mails de las personas que quieren recibir los mails.
+5. Seleccionar las branches para las que se quieren las notificaciones.
+6. Seleccionar "Save changes".
+
+> [!NOTE]
+> También es posible recibir notificaciones sólo para los pipelines rotos, para ello seleccionar la opción que dice "Notify only broken pipelines".
