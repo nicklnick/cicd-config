@@ -9,6 +9,7 @@ A continuación se configurará un Runner de GitLab. Este se encargará de gesti
 >   - _Sistema operativo_: Ubuntu Server 24.04 LTS con arquitectura x86
 >   - _Tipo de instancia_: t2.medium
 >   - _Par de claves_: ED25519
+>   - _Almacenamiento_: >= 32Gb
 
 ## 1. Creación del Runner
 
@@ -76,7 +77,7 @@ Esta siguiente etapa de configuración, consiste en la conexión y asociación d
    3. Ingresamos `docker:24.0.7` como imagen por defecto.
    4. Ejecutamos:
       ```bash
-      gitlab-runner run
+      gitlab-runner run &
       ```
 
 4. Finalmente deberíamos ver un mensaje en Gitlab que nos dice que el Runner se encuentra configurado y listo para asociarlo a un pipeline determinado.

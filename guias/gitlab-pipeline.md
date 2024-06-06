@@ -212,7 +212,7 @@ Este archivo configura Jest para que pueda trabajar correctamente con nuestra ap
         stage: test
         image: node:22-alpine3.18
         script:
-            - npm install
+            - npm ci
             - npm run test
     needs:
         - build
@@ -281,7 +281,7 @@ Este job se encargará de realizar los tests de usabilidad. Para ello utilizarem
             name: "cypress/included:13.9.0"
             entrypoint: [""]
         script:
-            - npm install
+            - npm ci
             - npm run e2e:headless
         needs:
             - build
